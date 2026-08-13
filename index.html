@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | Rosfresh</title>
+    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2><i class="fas fa-lock"></i> Acceso Seguro</h2>
+            <p>Panel de Administración Rosfresh</p>
+            <input type="password" id="adminPassword" placeholder="Contraseña">
+            <button id="btnLogin" class="btn-primary">Entrar</button>
+            <p id="loginError" class="error-msg"></p>
+        </div>
+    </div>
+
+    <div class="dashboard" id="mainDashboard" style="display: none;">
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>Roshfresh<br><span>Manager</span></h2>
+            </div>
+            <nav class="side-nav">
+                <button class="nav-btn active" data-target="finanzas"><i class="fas fa-chart-line"></i> Resumen y Caja</button>
+                <button class="nav-btn" data-target="productos"><i class="fas fa-box-open"></i> Menú y Catálogo</button>
+                <button class="nav-btn logout-btn" id="btnLogout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div id="adminLoader" class="loader-overlay"><div class="spinner"></div></div>
+
+            <section id="finanzas" class="view-section active">
+                <div class="header-action">
+                    <h2>Panel Financiero</h2>
+                    <button class="btn-primary" onclick="document.getElementById('finModal').style.display='flex'">
+                        <i class="fas fa-plus"></i> Nuevo Movimiento
+                    </button>
+                </div>
+                
+                <div class="kpi-grid">
+                    <div class="kpi-card income">
+                        <div class="icon"><i class="fas fa-arrow-up"></i></div>
+                        <div><p>Ingresos Brutos</p><h3 id="kpiIngresos">$0.00</h3></div>
+                    </div>
+                    <div class="kpi-card expense">
+                        <div class="icon"><i class="fas fa-arrow-down"></i></div>
+                        <div><p>Gastos Operativos</p><h3 id="kpiGastos">$0.00</h3></div>
+                    </div>
+                    <div class="kpi-card net">
+                        <div class="icon"><i class="fas fa-wallet"></i></div>
+                        <div><p>Ganancia Neta</p><h3 id="kpiNeto">$0.00</h3></div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="financeChart"></canvas>
+                </div>
+
+                <div class="table-card">
+                    <h3>Historial de Movimientos</h3>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead><tr><th>Fecha</th><th>Detalle</th><th>Tipo</th><th>Monto</th><th>Acción</th></tr></thead>
+                            <tbody id="tbFinanzas"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="productos" class="view-section">
+                <div class="header-action">
+                    <h2>Catálogo de Productos</h2>
+                    <button class="btn-primary" onclick="openNewProductModal()">
+                        <i class="fas fa-plus"></i> Nuevo Producto
+                    </button>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead><tr><th>Imagen</th><th>ID</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Acción</th></tr></thead>
+                            <tbody id="tbProductos"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL FINANZAS -->
+    <div id="finModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Registrar Caja</h3><button class="close-modal" onclick="closeModals()">&times;</button></div>
+            <form id="finForm">
+                <div class="form-group">
+                    <label>Tipo de movimiento</label>
+                    <select id="fTipo" required><option value="Ingreso">Ingreso (Venta)</option><option value="Gasto">Gasto (Insumos)</option></select>
+                </div>
+                <div class="form-group"><label>Monto ($)</label><input type="number" id="fMonto" step="0.5" required></div>
+                <div class="form-group"><label>Detalle</label><input type="text" id="fDetalle" placeholder="Ej. Vasos, Venta del día..." required></div>
+                <button type="submit" class="btn-primary w-100">Guardar Registro</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PRODUCTOS (NUEVO/EDITAR) -->
+    <div id="prodModal" class="modal">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header"><h3 id="prodModalTitle">Añadir al Menú</h3><button class="close-modal" onclick="closeModals()">&times;</button></div>
+            <form id="prodForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group"><label>Nombre</label><input type="text" id="pNombre" required></div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="pCat" required>
+                        <!-- NUEVO: Agregamos Desayunos y Paquetes -->
+                        <option value="Desayunos">Desayunos</option>
+                        <option value="Snacks">Snacks</option>
+                        <option value="Bebidas">Bebidas</option>
+                        <option value="Postres">Postres</option>
+                        <option value="Paquetes">Paquetes</option>
+                        <option value="Salsas">Salsas</option>
+                        <option value="Toppings">Toppings</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Precio ($)</label><input type="number" id="pPrecio" step="0.5" required></div>
+                <div class="form-group"><label>Descripción</label><textarea id="pDesc" rows="2"></textarea></div>
+                <div class="form-group">
+                    <label>Estado del Producto</label>
+                    <select id="pEstado" required>
+                        <option value="Disponible">✅ Disponible</option>
+                        <option value="Agotado">❌ Agotado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Imagen del Producto (Base64)</label>
+                    <input type="file" id="pImgFile" accept="image/*">
+                </div>
+                <button type="submit" class="btn-primary w-100" id="btnSaveProd">Publicar Producto</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
