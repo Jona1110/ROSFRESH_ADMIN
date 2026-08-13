@@ -38,13 +38,29 @@ function initAdmin() {
     loadProductos();
 }
 
-// --- CAPTURAR IMAGEN A BASE64 CON LECTURA SEGURA ---
+// --- CAPTURAR Y COMPRIMIR IMAGEN A BASE64 ---
 document.getElementById('pImgFile').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
         reader.onload = (uploadEvent) => {
-            base64ImageString = uploadEvent.target.result; // Asigna correctamente la cadena Base64
+            const img = new Image();
+            img.onload = () => {
+                // Crear un canvas para redimensionar la imagen
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 300; // Ancho máximo para no saturar Google Sheets
+                const scaleSize = MAX_WIDTH / img.width;
+                
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Comprimir a formato JPEG con calidad del 60%
+                base64ImageString = canvas.toDataURL('image/jpeg', 0.6);
+            };
+            img.src = uploadEvent.target.result;
         };
         reader.readAsDataURL(file);
     }
@@ -55,7 +71,7 @@ function openNewProductModal() {
     document.getElementById('editProductId').value = "";
     document.getElementById('prodModalTitle').textContent = "Añadir al Menú";
     document.getElementById('btnSaveProd').textContent = "Publicar Producto";
-    base64ImageString = ""; // Limpiar imagen previa
+    base64ImageString = ""; 
     document.getElementById('prodModal').style.display = 'flex';
 }
 
@@ -68,7 +84,7 @@ function prepareEditProduct(id) {
     document.getElementById('pCat').value = prod.categoria;
     document.getElementById('pPrecio').value = prod.precio;
     document.getElementById('pDesc').value = prod.descripcion || "";
-    base64ImageString = prod.imagen || ""; // Mantener la imagen existente si no se selecciona otra
+    base64ImageString = prod.imagen || ""; 
 
     document.getElementById('prodModalTitle').textContent = "Editar Producto";
     document.getElementById('btnSaveProd').textContent = "Actualizar Cambios";
@@ -172,7 +188,7 @@ document.getElementById('prodForm').addEventListener('submit', async (e) => {
         categoria: document.getElementById('pCat').value,
         precio: document.getElementById('pPrecio').value,
         descripcion: document.getElementById('pDesc').value,
-        imagen: base64ImageString // Envía la cadena Base64 procesada
+        imagen: base64ImageString 
     };
     
     try {
