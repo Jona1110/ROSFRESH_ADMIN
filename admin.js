@@ -38,13 +38,13 @@ function initAdmin() {
     loadProductos();
 }
 
-// --- CAPTURAR IMAGEN A BASE64 EN EL PANEL ---
+// --- CAPTURAR IMAGEN A BASE64 CON LECTURA SEGURA ---
 document.getElementById('pImgFile').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
-        reader.onloadend = () => {
-            base64ImageString = reader.result;
+        reader.onload = (uploadEvent) => {
+            base64ImageString = uploadEvent.target.result; // Asigna correctamente la cadena Base64
         };
         reader.readAsDataURL(file);
     }
@@ -55,7 +55,7 @@ function openNewProductModal() {
     document.getElementById('editProductId').value = "";
     document.getElementById('prodModalTitle').textContent = "Añadir al Menú";
     document.getElementById('btnSaveProd').textContent = "Publicar Producto";
-    base64ImageString = "";
+    base64ImageString = ""; // Limpiar imagen previa
     document.getElementById('prodModal').style.display = 'flex';
 }
 
@@ -68,7 +68,7 @@ function prepareEditProduct(id) {
     document.getElementById('pCat').value = prod.categoria;
     document.getElementById('pPrecio').value = prod.precio;
     document.getElementById('pDesc').value = prod.descripcion || "";
-    base64ImageString = prod.imagen || "";
+    base64ImageString = prod.imagen || ""; // Mantener la imagen existente si no se selecciona otra
 
     document.getElementById('prodModalTitle').textContent = "Editar Producto";
     document.getElementById('btnSaveProd').textContent = "Actualizar Cambios";
@@ -172,7 +172,7 @@ document.getElementById('prodForm').addEventListener('submit', async (e) => {
         categoria: document.getElementById('pCat').value,
         precio: document.getElementById('pPrecio').value,
         descripcion: document.getElementById('pDesc').value,
-        imagen: base64ImageString
+        imagen: base64ImageString // Envía la cadena Base64 procesada
     };
     
     try {
@@ -181,6 +181,7 @@ document.getElementById('prodForm').addEventListener('submit', async (e) => {
             body: JSON.stringify(data) 
         });
         document.getElementById('prodForm').reset();
+        base64ImageString = "";
         loadProductos();
     } catch (error) {
         alert("Error al guardar el producto.");
