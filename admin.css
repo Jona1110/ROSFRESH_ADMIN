@@ -78,6 +78,8 @@ body {
 .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
 .badge-in { background: rgba(27, 197, 189, 0.1); color: var(--success); }
 .badge-out { background: rgba(246, 78, 96, 0.1); color: var(--danger); }
+/* NUEVA ETIQUETA PARA CANCELACIONES */
+.badge-cancel { background: #f3f6f9; color: #b5b5c3; border: 1px solid #ebedf3; }
 
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); padding: 15px;}
 .modal-content { background: white; width: 100%; max-width: 480px; border-radius: 14px; padding: 25px 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: scaleUp 0.3s; max-height: 90vh; overflow-y: auto;}
