@@ -1,4 +1,3 @@
-// panel_admin/admin.js
 const API_URL = "https://script.google.com/macros/s/AKfycbzEWadNGyMnFZu_DZLAeRqn395nOcR-24DsEZxlXYmdlZpFhCG2BPY1U5JBgp64SLiFWw/exec"; 
 const PASS = "1234"; 
 
@@ -90,7 +89,7 @@ function prepareEditProduct(id) {
     document.getElementById('prodModal').style.display = 'flex';
 }
 
-// FINANZAS
+// --- FINANZAS ---
 document.getElementById('finForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     closeModals(); 
@@ -128,17 +127,31 @@ async function loadFinanzas() {
         let chartData = { Ingreso: 0, Gasto: 0 };
 
         data.reverse().forEach(row => {
-            const isIng = row.tipo === 'Ingreso';
-            if (isIng) { ing += parseFloat(row.monto); chartData.Ingreso += parseFloat(row.monto); } 
-            else { gas += parseFloat(row.monto); chartData.Gasto += parseFloat(row.monto); }
+            let badgeClass = '';
+            let styleTachado = '';
             
-            const badgeClass = isIng ? 'badge-in' : 'badge-out';
+            // Lógica actualizada para diferenciar Ingresos, Gastos y Cancelaciones
+            if (row.tipo === 'Ingreso') {
+                ing += parseFloat(row.monto);
+                chartData.Ingreso += parseFloat(row.monto);
+                badgeClass = 'badge-in';
+            } else if (row.tipo === 'Gasto') {
+                gas += parseFloat(row.monto);
+                chartData.Gasto += parseFloat(row.monto);
+                badgeClass = 'badge-out';
+            } else if (row.tipo === 'Cancelado') {
+                badgeClass = 'badge-cancel';
+                styleTachado = 'text-decoration: line-through; color: #a2a3b7;'; // Estilo visual tachado
+            } else {
+                badgeClass = 'badge-out';
+            }
+            
             tb.innerHTML += `<tr>
-                <td>${row.fecha ? row.fecha.split(',')[0] : ''}</td>
-                <td>${row.detalle}</td>
+                <td style="${styleTachado}">${row.fecha ? row.fecha.split(',')[0] : ''}</td>
+                <td style="${styleTachado}">${row.detalle}</td>
                 <td><span class="badge ${badgeClass}">${row.tipo}</span></td>
-                <td>$${parseFloat(row.monto).toFixed(2)}</td>
-                <td><button class="btn-danger" onclick="deleteRecord('deleteFinance', '${row.id}')"><i class="fas fa-trash"></i></button></td>
+                <td style="${styleTachado}">$${parseFloat(row.monto).toFixed(2)}</td>
+                <td><button class="btn-danger" onclick="deleteRecord('deleteFinance', '${row.id}')" title="Eliminar definitivamente"><i class="fas fa-trash"></i></button></td>
             </tr>`;
         });
 
@@ -171,7 +184,7 @@ function renderChart(ingreso, gasto) {
     });
 }
 
-// PRODUCTOS (CREAR Y EDITAR)
+// --- PRODUCTOS (CREAR Y EDITAR) ---
 document.getElementById('prodForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     closeModals(); 
@@ -230,7 +243,7 @@ async function loadProductos() {
                 <td>$${parseFloat(row.precio).toFixed(2)}</td>
                 <td>
                     <button class="btn-primary" style="padding:6px 10px; font-size:0.85rem;" onclick="prepareEditProduct('${row.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn-danger" onclick="deleteRecord('deleteProduct', '${row.id}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn-danger" onclick="deleteRecord('deleteProduct', '${row.id}')" title="Eliminar producto"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>`;
         });
@@ -241,7 +254,7 @@ async function loadProductos() {
 }
 
 async function deleteRecord(actionName, id) {
-    if(!confirm("¿Estás seguro de eliminar este registro?")) return;
+    if(!confirm("¿Estás seguro de eliminar este registro definitivamente?")) return;
     
     showLoader();
     try {
